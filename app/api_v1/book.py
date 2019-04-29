@@ -3,13 +3,19 @@ from flask_restful import Resource, Api, reqparse, fields, marshal_with
 from . import api_blueprint as api_bp
 from ..models.book import Book
 from app import db
-from sqlalchemy.orm import class_mapper
-
+from datetime import datetime
+from qcloud_cos_py3.cos_auth import CosAuth
+# from qcloud_cos import CosS3Auth
+import baseConfig
+from time import time
+import requests
 
 api = Api(api_bp)
 
-
 class PublishSingleBook(Resource):
+    """
+    :实现添加单本书籍
+    """
     def post(self):
         # 获取request数据
         _response = dict()
@@ -43,6 +49,10 @@ class PublishSingleBook(Resource):
 api.add_resource(PublishSingleBook, '/publish/single')
 
 class PublishManyBook(Resource):
+    """
+    :function: 实现添加多本书籍
+    :return: response:200：表示添加成功，401：表示添加失败
+    """
     def post(self):
         _response = dict()
         # 解析数据
@@ -78,22 +88,28 @@ api.add_resource(PublishManyBook, '/publish/many')
 
 class getAllBooks(Resource):
 
-
-
     def get(self):
         """
         :向服务器取得所有数据数据
         :return:
         """
-        book = Book()
         all_books = db.session.query(Book).all()
-        # books = marshal_with(all_books)
-        # json.dumps(book, cls=AlchemyEncoder)
-        # print(all_books)
-        # print(books)
-        result = []
-        # for book in all_books:
-        #     result.append(book)
-        # print(result)
-        # return json.dumps(result), 200
+        book = Book.to_json(all_books)
+        return book, 200
 api.add_resource(getAllBooks, '/get/all_books')
+
+class getCosAuth(Resource):
+    def get(self):
+        auth = CosAuth(appid=baseConfig.QCOS_APPID,
+                       secret_id=baseConfig.QCOS_SECRET_ID,
+                       secret_key=baseConfig.QCOS_SECRET_KEY)
+        expired = time() + 3600  # 签名有效时间 3600 秒
+        # 上传到 cos bucket 的目录
+        dir_name = requests.get('cos_path', '/xrzeti')
+        # dir_name = request.raw_args.get('cos_path', '/xrzeti')
+        # 生成签名
+        sign = auth.sign_more(baseConfig['QCOS_BUCKET_NAME'],
+                              cos_path=dir_name,
+                              expired=expired)
+        return {"sign": sign}, 200
+api.add_resource(getCosAuth, '/get/upload_auth')

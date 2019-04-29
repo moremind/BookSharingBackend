@@ -4,7 +4,7 @@ from . import api_blueprint as api_bp
 from ..models.user import User
 from app import db
 import requests
-from config import config
+from baseConfig import baseConfig
 
 api = Api(api_bp)
 
@@ -23,10 +23,10 @@ class RegisterSession(Resource):
         _response = dict()
         login_data = request.data
         login_data = json.loads(login_data)
-        app_id = config['app_id']
-        secret = config['secret']
+        app_id = baseConfig['app_id']
+        secret = baseConfig['secret']
         js_code = login_data['code']
-        grant_type = config['grant_type']
+        grant_type = baseConfig['grant_type']
 
         # 通过requests发送post请求获得session以及openid
         url = 'https://api.weixin.qq.com/sns/jscode2session?appid='+app_id+'&secret='+secret+'&js_code='+js_code+'&grant_type='+grant_type
