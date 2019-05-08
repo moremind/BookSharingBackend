@@ -1,10 +1,6 @@
 
 from app import db
 from datetime import datetime
-from flask_rest_jsonapi import  Api, ResourceDetail, ResourceList
-from flask_sqlalchemy import SQLAlchemy
-from marshmallow_jsonapi.flask import Schema
-from marshmallow_jsonapi import fields
 
 class Book(db.Model):
     """

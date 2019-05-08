@@ -3,12 +3,6 @@ from flask_restful import Resource, Api, reqparse, fields, marshal_with
 from . import api_blueprint as api_bp
 from ..models.book import Book
 from app import db
-from datetime import datetime
-from qcloud_cos_py3.cos_auth import CosAuth
-# from qcloud_cos import CosS3Auth
-import baseConfig
-from time import time
-import requests
 
 api = Api(api_bp)
 
@@ -27,8 +21,9 @@ class PublishSingleBook(Resource):
         new_book.book_name = book_data['bookName']
         new_book.book_desc = book_data['bookDesc']
         new_book.book_price = book_data['bookPrice']
-        new_book.book_img_url = '22222'
+        new_book.book_img_url = book_data['images']
         new_book.real_name = book_data['userName']
+        # 此处需要添加user_id,只有登录的用户才有user_id
         new_book.user_phone = book_data['phone']
         new_book.user_province = book_data['province']
         new_book.user_city = book_data['city']
@@ -46,7 +41,7 @@ class PublishSingleBook(Resource):
             db.session.close()
         return _response, 200
 
-api.add_resource(PublishSingleBook, '/publish/single')
+api.add_resource(PublishSingleBook, '/books/single')
 
 class PublishManyBook(Resource):
     """
@@ -84,7 +79,7 @@ class PublishManyBook(Resource):
             db.session.close()
         return _response, 200
 
-api.add_resource(PublishManyBook, '/publish/many')
+api.add_resource(PublishManyBook, '/books/many')
 
 class getAllBooks(Resource):
 
@@ -96,20 +91,26 @@ class getAllBooks(Resource):
         all_books = db.session.query(Book).all()
         book = Book.to_json(all_books)
         return book, 200
-api.add_resource(getAllBooks, '/get/all_books')
+api.add_resource(getAllBooks, '/books/all')
 
-class getCosAuth(Resource):
-    def get(self):
-        auth = CosAuth(appid=baseConfig.QCOS_APPID,
-                       secret_id=baseConfig.QCOS_SECRET_ID,
-                       secret_key=baseConfig.QCOS_SECRET_KEY)
-        expired = time() + 3600  # 签名有效时间 3600 秒
-        # 上传到 cos bucket 的目录
-        dir_name = requests.get('cos_path', '/xrzeti')
-        # dir_name = request.raw_args.get('cos_path', '/xrzeti')
-        # 生成签名
-        sign = auth.sign_more(baseConfig['QCOS_BUCKET_NAME'],
-                              cos_path=dir_name,
-                              expired=expired)
-        return {"sign": sign}, 200
-api.add_resource(getCosAuth, '/get/upload_auth')
+class getOwnPublishBooks(Resource):
+    def get(self, userId):
+        """
+        :查询用户发布的数据
+        :return: 该用户发布的书籍信息
+        """
+        own_books = db.session.query(Book).filter_by(Book.user_id == userId).all()
+        book = Book.to_json(own_books)
+        return book, 200
+api.add_resource(getOwnPublishBooks, '/books/own')
+
+class getSearchBook(Resource):
+    """
+    :查询用户的书籍信息
+    :return: 根据用户关键字返回的信息
+    """
+    def get(self, keyWords):
+        search_book = db.session.query(Book).filter(Book.book_name.like("%keyWords%"))
+        book = Book.to_json(search_book)
+        return book, 200
+api.add_resource(getSearchBook, '/books/search')
