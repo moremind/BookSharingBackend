@@ -94,11 +94,15 @@ class getAllBooks(Resource):
 api.add_resource(getAllBooks, '/books/all')
 
 class getOwnPublishBooks(Resource):
-    def get(self, userId):
+    def get(self):
         """
         :查询用户发布的数据
         :return: 该用户发布的书籍信息
         """
+        req_data = request.data
+        data = json.loads(req_data)
+        userData = data['data']
+        userId = userData['user_id']
         own_books = db.session.query(Book).filter_by(Book.user_id == userId).all()
         book = Book.to_json(own_books)
         return book, 200
@@ -109,7 +113,11 @@ class getSearchBook(Resource):
     :查询用户的书籍信息
     :return: 根据用户关键字返回的信息
     """
-    def get(self, keyWords):
+    def get(self):
+        req_data = request.data
+        data = json.loads(req_data)
+        keyWordData = data['data']
+        keyWords = keyWordData['keyword']
         search_book = db.session.query(Book).filter(Book.book_name.like("%keyWords%"))
         book = Book.to_json(search_book)
         return book, 200
