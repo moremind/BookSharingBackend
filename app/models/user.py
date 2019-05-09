@@ -7,7 +7,7 @@ from datetime import datetime
 class User(db.Model):
     __tablename__ = 'user'
     # 微信相关信息
-    user_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, primary_key=True, index=True)
     open_id = db.Column(db.String(255), unique=True) # 用户的唯一标识
     user_name = db.Column(db.String(64), index=True)
     user_phone = db.Column(db.String(18))
@@ -21,3 +21,12 @@ class User(db.Model):
     city = db.Column(db.String(255))
     create_time = db.Column(db.DateTime, default=datetime.now())
     update_time = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now())
+
+# 用户日志表
+class UserLog(db.Model):
+    __tablename__ = 'userlog'
+    log_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer)
+    login_time = db.Column(db.DateTime)
+    logout_time = db.Column(db.DateTime)
+    # login_type = db.Column(db.Strig(255), default=1) # 1表示微信登录，2表示手机登录
