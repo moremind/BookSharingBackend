@@ -101,8 +101,7 @@ class getOwnPublishBooks(Resource):
         """
         req_data = request.data
         data = json.loads(req_data)
-        userData = data['data']
-        userId = userData['user_id']
+        userId = data['user_id']
         own_books = db.session.query(Book).filter_by(Book.user_id == userId).all()
         book = Book.to_json(own_books)
         return book, 200

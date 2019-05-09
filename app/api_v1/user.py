@@ -62,7 +62,7 @@ class UserRegister(Resource):
         data = request.data
         data = json.loads(data)
         user_data = data['data']
-        _openid = user_data['openId']
+        # _openid = user_data['openId']
         new_user = User()
         new_user.open_id = user_data['openId']
         new_user.user_name = user_data['nickName']
@@ -73,13 +73,13 @@ class UserRegister(Resource):
         new_user.user_pic = user_data['avatarUrl']
         new_user.gender = user_data['gender'] # 1:表示男,0表示女
 
-        user_id = ''
         # 数据库事物
         try:
             db.session.add(new_user)
             db.session.flush()
-            # 新插入用户需要返回用户id，用于用户查询
-            _response['user_id'] = user_id
+            userId = new_user.user_id
+            # # 新插入用户需要返回用户id，用于用户查询
+            _response['user_id'] = userId
             db.session.commit()
         except:
             db.session.rollback()
@@ -101,9 +101,8 @@ class UserLogin(Resource):
         # 通过前端返回的数据进行验证
         req_data = request.data
         data = json.loads(req_data)
-        user_data = data['data']
-        user_id = user_data['user_id']
-        user_log = new UserLog()
+        user_id = data['user_id']
+        user_log = UserLog()
         user_log.login_time = datetime.now()
         user_log.user_id = user_id
         try:
@@ -136,20 +135,21 @@ class UserVerify(Resource):
         # 通过前端返回的数据进行验证
         req_data = request.data
         data = json.loads(req_data)
-        user_data = data['data']
-        _openid = user_data['openId']
+        _openid = data['open_id']
         # new_user = User()
         # 通过用户open_id判断是否存入过数据，未存入，则可以注册，已注册过则直接返回用户数据，前端通过后端返回的数据进行登录
         if User.query.filter_by(open_id=_openid).first() is not None:
             # 查询成功，用户已经注册过，并且查询用户数据并且返回
             _response['msg'] = 'the user already exists.'
-            userData = User.query.filter_by(open_id=_openid) # 通过微信用户的open_id查询用户是否注册过
-            _response['userData'] = userData
+            userData = User.query.filter_by(open_id=_openid).all() # 通过微信用户的open_id查询用户是否注册过
+            user_data = User.to_json(userData)
+            _response['user_data'] = user_data
+            # _response['userData'] = userData
             return _response, 200
         else:
             # 用户不存在，则userData为空
             _response['msg'] = 'the user not register.'
             _response['userData'] = ''
-            return _response, 400
+            return _response, 201
 
 api.add_resource(UserVerify, '/user/verify')
