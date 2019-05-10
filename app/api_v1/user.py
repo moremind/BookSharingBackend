@@ -125,7 +125,7 @@ class UserVerify(Resource):
     def post(self):
 
         """
-        :验证用户是否登录过
+        :description: 验证用户是否登录过
         """
         # 查询是否存在当前用户，使用微信NickName作为username
         # 如果查询微信用户已经注册，则让用户直接登录，而不再插入数据库，如果未注册，则直接让用户注册并添加到数据库。

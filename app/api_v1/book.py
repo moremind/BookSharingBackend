@@ -99,10 +99,9 @@ class getOwnPublishBooks(Resource):
         :查询用户发布的数据
         :return: 该用户发布的书籍信息
         """
-        req_data = request.data
-        data = json.loads(req_data)
-        userId = data['user_id']
-        own_books = db.session.query(Book).filter_by(Book.user_id == userId).all()
+        req_data = request.args.get('user_id')
+        userId = req_data
+        own_books = db.session.query(Book).filter(Book.user_id == userId).all()
         book = Book.to_json(own_books)
         return book, 200
 api.add_resource(getOwnPublishBooks, '/books/own')
@@ -113,11 +112,9 @@ class getSearchBook(Resource):
     :return: 根据用户关键字返回的信息
     """
     def get(self):
-        req_data = request.data
-        data = json.loads(req_data)
-        keyWordData = data['data']
-        keyWords = keyWordData['keyword']
-        search_book = db.session.query(Book).filter(Book.book_name.like("%keyWords%"))
+        req_data = request.args.get('keyword')
+        KeyWord = req_data
+        search_book = db.session.query(Book).filter(Book.book_name.like("%"+KeyWord+"%"))
         book = Book.to_json(search_book)
         return book, 200
 api.add_resource(getSearchBook, '/books/search')
