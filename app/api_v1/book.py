@@ -8,7 +8,7 @@ api = Api(api_bp)
 
 class PublishSingleBook(Resource):
     """
-    :实现添加单本书籍
+    实现添加单本书籍
     """
     def post(self):
         # 获取request数据
@@ -23,7 +23,7 @@ class PublishSingleBook(Resource):
         new_book.book_price = book_data['bookPrice']
         new_book.book_img_url = book_data['images']
         new_book.real_name = book_data['userName']
-        # 此处需要添加user_id,只有登录的用户才有user_id
+        new_book.user_id = book_data['user_id']
         new_book.user_phone = book_data['phone']
         new_book.user_province = book_data['province']
         new_book.user_city = book_data['city']
@@ -45,7 +45,7 @@ api.add_resource(PublishSingleBook, '/books/single')
 
 class PublishManyBook(Resource):
     """
-    :function: 实现添加多本书籍
+    function: 实现添加多本书籍
     :return: response:200：表示添加成功，401：表示添加失败
     """
     def post(self):
@@ -60,7 +60,8 @@ class PublishManyBook(Resource):
         new_book.book_name = book_data['bookName']
         new_book.book_desc = book_data['bookDesc']
         new_book.book_price = book_data['bookPrice']
-        new_book.book_img_url = '22222'
+        new_book.book_img_url = book_data['images']
+        new_book.user_id = book_data['user_id']
         new_book.real_name = book_data['userName']
         new_book.user_phone = book_data['phone']
         new_book.user_province = book_data['province']
@@ -85,7 +86,7 @@ class getAllBooks(Resource):
 
     def get(self):
         """
-        :向服务器取得所有数据数据
+        向服务器取得所有数据数据
         :return:
         """
         all_books = db.session.query(Book).all()
@@ -96,7 +97,7 @@ api.add_resource(getAllBooks, '/books/all')
 class getOwnPublishBooks(Resource):
     def get(self):
         """
-        :查询用户发布的数据
+        查询用户发布的数据
         :return: 该用户发布的书籍信息
         """
         req_data = request.args.get('user_id')
@@ -108,7 +109,7 @@ api.add_resource(getOwnPublishBooks, '/books/own')
 
 class getSearchBook(Resource):
     """
-    :查询用户的书籍信息
+    查询用户的书籍信息
     :return: 根据用户关键字返回的信息
     """
     def get(self):
