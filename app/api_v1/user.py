@@ -1,7 +1,7 @@
 from flask import Flask, request, json, jsonify
 from flask_restful import Resource, Api, reqparse
 from . import api_blueprint as api_bp
-from ..models.user import User, UserLog
+from ..models.user import User, UserLog, UserFeedback
 from app import db
 import requests
 from baseConfig import baseConfig
@@ -177,15 +177,13 @@ class UserLogout(Resource):
 api.add_resource(UserLogout, '/user/logout')
 
 class GetOneUser(Resource):
-    def post(self):
+    def get(self):
         """
         在用户已经登陆的情况下，通过查询user_id获得某个用户的所有信息
         :return:返回查询到的改用户的所有信息
         """
-        _response=dict()
-        req_data = request.data
-        data = json.loads(req_data)
-        user_id = data['user_id']
+        _response = dict()
+        user_id = request.args.get('user_id')
         userData = User.query.filter_by(user_id=user_id).all()
         user_data = User.to_json(userData)
         _response['user_data'] = user_data
@@ -213,3 +211,31 @@ class UpdateUserSign(Resource):
         finally:
             db.session.close()
 api.add_resource(UpdateUserSign, '/user/signs')
+
+class AddUserFeedback(Resource):
+    """
+    向数据库中添加用户的反馈信息
+    """
+    def post(self):
+        _response = dict()
+        req_data = request.data
+        data = json.loads(req_data)
+        user_id = data['user_id']
+        content = data['content']
+
+        user_feedback = UserFeedback()
+        user_feedback.user_id = user_id
+        user_feedback.content = content
+
+        try:
+            db.session.add(user_feedback)
+            db.session.commit()
+            _response['msg'] = 'commit successfully'
+            _response['status'] = '200'
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
+        return _response, 200
+api.add_resource(AddUserFeedback, '/user/feedback')

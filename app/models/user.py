@@ -1,7 +1,4 @@
 from app import db
-import app
-from flask import current_app
-from config import config
 from datetime import datetime
 
 class User(db.Model):
@@ -15,7 +12,7 @@ class User(db.Model):
     user_sign = db.Column(db.String(255))
     nick_name = db.Column(db.String(64))
     user_pic = db.Column(db.String(255))
-    gender = db.Column(db.Boolean)
+    gender = db.Column(db.Integer)
     country = db.Column(db.String(255))
     province = db.Column(db.String(255))
     city = db.Column(db.String(255))
@@ -53,3 +50,11 @@ class UserLog(db.Model):
     login_time = db.Column(db.DateTime)
     logout_time = db.Column(db.DateTime)
     # login_type = db.Column(db.Strig(255), default=1) # 1表示微信登录，2表示手机登录
+
+class UserFeedback(db.Model):
+    __tablename__ = 'user_feedback'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer)
+    content = db.Column(db.String(255))
+    create_time = db.Column(db.DateTime, default=datetime.now())
+
