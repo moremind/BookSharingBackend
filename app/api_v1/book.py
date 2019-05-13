@@ -44,11 +44,11 @@ class PublishSingleBook(Resource):
 api.add_resource(PublishSingleBook, '/books/single')
 
 class PublishManyBook(Resource):
-    """
-    function: 实现添加多本书籍
-    :return: response:200：表示添加成功，401：表示添加失败
-    """
     def post(self):
+        """
+        function: 实现添加多本书籍
+        :return: response:200：表示添加成功，201：表示添加失败
+        """
         _response = dict()
         # 解析数据
         data = request.data
@@ -89,7 +89,7 @@ class getAllBooks(Resource):
         向服务器取得所有数据数据
         :return:
         """
-        all_books = db.session.query(Book).all()
+        all_books = db.session.query(Book).filter(Book.is_publish == True).all()
         book = Book.to_json(all_books)
         return book, 200
 api.add_resource(getAllBooks, '/books/all')
@@ -107,11 +107,11 @@ class getOwnPublishBooks(Resource):
 api.add_resource(getOwnPublishBooks, '/books/own')
 
 class getSearchBook(Resource):
-    """
-    查询用户的书籍信息
-    :return: 根据用户关键字返回的信息
-    """
     def get(self):
+        """
+        查询用户的书籍信息
+        :return: 根据用户关键字返回的信息
+        """
         req_data = request.args.get('keyword')
         KeyWord = req_data
         search_book = db.session.query(Book).filter(Book.book_name.like("%"+KeyWord+"%"))
@@ -121,8 +121,59 @@ api.add_resource(getSearchBook, '/books/search')
 
 class getOneBook(Resource):
     def get(self):
+        """
+        根据书籍id查看书籍详细信息
+        :return:某本书的相信信息
+        """
         book_id = request.args.get('id')
         own_books = db.session.query(Book).filter(Book.id == book_id).all()
         book = Book.to_json(own_books)
         return book, 200
 api.add_resource(getOneBook, '/books/getone')
+
+class deleteBook(Resource):
+    def post(selfq):
+        """
+        根据用户提供的书籍id删除用户发布的书籍
+        :return:
+        """
+        _response = dict()
+        req_data = request.data
+        data = json.loads(req_data)
+        book_id = data['book_id']
+        user_id = data['user_id']
+        try:
+            Book.query.filter_by(id=book_id, user_id=user_id).delete()
+            db.session.commit()
+            _response['msg'] = 'delete successfully!'
+            _response['code'] = '200'
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
+api.add_resource(deleteBook, '/books/deletebook')
+
+class changeBookStatus(Resource):
+    def post(self):
+        """
+        修改书籍发布状态
+        :return:
+        """
+        _response = dict()
+        req_data = request.data
+        data = json.loads(req_data)
+        book_id = data['book_id']
+        user_id = data['user_id']
+        is_publish = data['is_publish']
+        print(data)
+        try:
+            # 查询用户id，并且根据用户id进行更新信息
+            Book.query.filter_by(id=book_id, user_id=user_id).update({"is_publish": is_publish})
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
+api.add_resource(changeBookStatus, '/books/updatestatus')
