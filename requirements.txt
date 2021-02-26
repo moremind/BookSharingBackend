@@ -1,4 +1,4 @@
-aiohttp==3.5.4
+aiohttp==3.7.4
 alembic==1.0.8
 aniso8601==6.0.0
 astroid==2.2.5
